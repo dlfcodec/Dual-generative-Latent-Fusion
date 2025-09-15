@@ -97,11 +97,12 @@ We sincerely thank the following outstanding works, which greatly inspired and s
 
 If you find our work inspiring, please cite:
 ```bibtex
-@article{xue2025dlf,
-  title={DLF: Extreme Image Compression with Dual-generative Latent Fusion},
+@InProceedings{xue2025dlf,
   author={Xue, Naifu and Jia, Zhaoyang and Li, Jiahao and Li, Bin and Zhang, Yuan and Lu, Yan},
-  journal={arXiv preprint arXiv:2503.01428},
-  year={2025}
+  title={DLF: Extreme Image Compression with Dual-generative Latent Fusion},
+  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+  month = {Oct},
+  year={2025},
 }
 ```
 
