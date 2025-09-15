@@ -108,5 +108,5 @@ If you find our work inspiring, please cite:
 
 ## ⚖️ License
 
-This work is licensed under the MIT License.
+This work is licensed under the Apache 2.0 License.
 
