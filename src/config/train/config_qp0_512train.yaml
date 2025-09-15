@@ -1,0 +1,134 @@
+model:
+  target: models.codec_sq_fixbpp.Codec
+  params:
+    monitor: saved_loss
+
+    # YOU NEED TO LOAD PREVIOUS 256x256 TRAINING CHECKPOINT HERE.
+    ckpt_path: your_256x256_model_path
+    ignore_keys: ['epoch_for_strategy', 'lmbda_idx', 'lmbda_list']   # IMPORTANT: to ignore previous training strategy
+
+    titok_pretrain_path: ../logs/tokenizer_titok_l32.bin             # !!! NOTE: change this to your downloaded TiTok-L-32 checkpoint.
+
+    embed_dim: 64
+    feat_dim: 768
+    in_pos_enc: [3, 7, 11, 15, 19]
+    in_pos_dec: [3, 7, 11, 15, 19]
+    n_attn: 2
+    no_attn_vqgan: False              # should be False
+    tune_titok: False                 # whether to tune titok (semantic branch), this should be False, unless you finish 512x512 training and want further boost performance.
+                                      # When set tune_titok to True, use small lr like 1e-6!
+
+    # titok config
+    config:
+      model:
+          vq_model:
+              codebook_size: 4096
+              token_size: 12
+              use_l2_norm: True
+              commitment_cost: 0.25
+              # vit arch
+              vit_enc_model_size: "large"
+              vit_dec_model_size: "large"
+              vit_enc_patch_size: 16
+              vit_dec_patch_size: 16
+              num_latent_tokens: 32
+      dataset:
+          preprocessing:
+              crop_size: 256
+
+    # vqgan config
+    vqganconfig:
+      ckpt_path: ../logs/vqgan/last.ckpt        # !!! NOTE: change this to your downloaded vqgan checkpoint.
+      ignore_keys: [loss.discriminator]
+      monitor: val/rec_loss
+      embed_dim: 256
+      n_embed: 256
+      ddconfig:
+        double_z: False
+        z_channels: 256
+        resolution: 256
+        in_channels: 3
+        out_ch: 3
+        ch: 128
+        ch_mult: [1,1,2,2,4]  # num_down = len(ch_mult)-1
+        num_res_blocks: 2
+        attn_resolutions: [16]
+        dropout: 0.0
+      lossconfig:
+        target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+        params:
+          disc_conditional: false
+          disc_in_channels: 3
+          disc_start: 9999999
+          disc_weight: 0.8
+          codebook_weight: 1.0
+
+    # image loss config
+    imglossconfig:
+      disc_conditional: false
+      disc_in_channels: 3
+      disc_start: 0
+      disc_weight: 0.8
+      codebook_weight: 1.0
+      sq_weight: 8.0          # this is useless here, but shuould be provided. It will be changed with lambda adjustment mechanism.
+
+    # feat align loss config
+    featlossconfig:
+      mse_weight: 1.0
+      ce_weight: 0.25
+      sq_weight: 8.0          # this is useless, but shuould be provided. It will be changed with lambda adjustment mechanism.
+      vq_weight: 1.0
+
+    training_strategy:
+      learning_rate: 2e-5     # !!! NOTE: To further boost performance, you may contiune training with lower lr like 5e-6
+      start_epoch: 0
+
+      # We directly to stage 2.
+      stage0:
+        epoch_num: 0
+        init_lmbda_idx: 0
+        lmbda_list: [28.]
+        bpp_upper: 2.0
+        bpp_lower: 0.001
+
+      # We directly to stage 2.
+      stage1:   
+        epoch_num: 0
+        init_lmbda_idx: 0
+        lmbda_list: [28.]
+        bpp_upper: 0.015
+        bpp_lower: 0.008
+      
+      # In stage 2 512x512 training, we fix lambda.
+      # YOU MAY NEED TO ADJUST THE lmbda_list FOR YOUR OWN BITRATE.
+      stage2:   
+        epoch_num: 90
+        init_lmbda_idx: 0
+        lmbda_list: [28.]
+        bpp_upper: 0.003
+        bpp_lower: 0.001
+
+
+# you need save image paths to txt file for dataloader
+data:
+  target: taming.data.data_module.DataModuleFromConfig_customBatchSize
+  params:
+    batch_size: 2
+    val_batch_size: 2
+    num_workers: 2
+    train:
+      target: taming.data.custom_crop.CustomTrain
+      params:
+        size: 256
+        training_images_list_file: ../openimages_train.txt      # !!! NOTE: change this to your training dataset txt file.
+    validation:
+      target: taming.data.custom_crop.CustomTest
+      params:
+        size: 512
+        test_images_list_file: ../validation.txt                # !!! NOTE: change this to your validation dataset txt file.
+
+
+lightning:
+  trainer:
+    max_epochs: 20
+    val_check_interval: 5000

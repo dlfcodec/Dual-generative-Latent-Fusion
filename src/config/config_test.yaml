@@ -1,0 +1,106 @@
+model:
+  target: models.codec_sq_fixbpp.Codec
+  params:
+    monitor: saved_loss
+
+    # load ckpt
+    ckpt_path: ~
+    ignore_keys: []
+    titok_pretrain_path: ~
+
+    embed_dim: 64
+    feat_dim: 768
+    in_pos_enc: [3, 7, 11, 15, 19]
+    in_pos_dec: [3, 7, 11, 15, 19]
+    n_attn: 2
+    no_attn_vqgan: False
+    tune_titok: False           # this should be False, unless the final 512x512 training with lr=1e-5
+
+    # titok config
+    config:
+      model:
+          vq_model:
+              codebook_size: 4096
+              token_size: 12
+              use_l2_norm: True
+              commitment_cost: 0.25
+              # vit arch
+              vit_enc_model_size: "large"
+              vit_dec_model_size: "large"
+              vit_enc_patch_size: 16
+              vit_dec_patch_size: 16
+              num_latent_tokens: 32
+      dataset:
+          preprocessing:
+              crop_size: 256
+
+    # vqgan config
+    vqganconfig:
+      ckpt_path: ~
+      ignore_keys: [loss.discriminator]
+      monitor: val/rec_loss
+      embed_dim: 256
+      n_embed: 256
+      ddconfig:
+        double_z: False
+        z_channels: 256
+        resolution: 256
+        in_channels: 3
+        out_ch: 3
+        ch: 128
+        ch_mult: [1,1,2,2,4]  # num_down = len(ch_mult)-1
+        num_res_blocks: 2
+        attn_resolutions: [16]
+        dropout: 0.0
+      lossconfig:
+        target: taming.modules.losses.vqperceptual.VQLPIPSWithDiscriminator
+        params:
+          disc_conditional: false
+          disc_in_channels: 3
+          disc_start: 9999999
+          disc_weight: 0.75
+          codebook_weight: 1.0
+
+    # image loss config
+    imglossconfig:
+      disc_conditional: false
+      disc_in_channels: 3
+      disc_start: 0
+      disc_weight: 0.75
+      codebook_weight: 1.0
+      sq_weight: 8.0          # this is useless.
+
+    # feat align loss config
+    featlossconfig:
+      mse_weight: 1.0
+      ce_weight: 0.25
+      sq_weight: 8.0          # this is useless.
+      vq_weight: 1.0
+
+    training_strategy:
+      learning_rate: 5e-5
+      start_epoch: 0
+
+      # In stage 0, align with VQGAN, almost no bpp loss.
+      stage0:
+        epoch_num: 1
+        init_lmbda_idx: 0
+        lmbda_list: [1.  , 7.2 , 7.37]
+        bpp_upper: 2.0
+        bpp_lower: 0.001
+
+      # In stage 1, align with VQGAN, gradually increase lambda for lower bpp.
+      stage1:   
+        epoch_num: 4
+        init_lmbda_idx: 0
+        lmbda_list: [1.  , 7.2 , 7.37]
+        bpp_upper: 0.012
+        bpp_lower: 0.007
+      
+      # In stage 2, we fix lambda to stable training.
+      stage2:   
+        epoch_num: 90
+        init_lmbda_idx: 0
+        lmbda_list: [1.  , 7.2 , 7.37]
+        bpp_upper: 0.015
+        bpp_lower: 0.010
