@@ -44,7 +44,7 @@ make -j
 
 ## 💻 Inference
 
-1. Download the [pretrained models](https://1drv.ms/f/c/af332a47fcf136b4/Esyt5scWxTFGi8Lu7iSpUOEBAEQUQVoBF6ZcbfIORvdTcg)
+1. Download [our model weights](https://1drv.ms/f/c/af332a47fcf136b4/Esyt5scWxTFGi8Lu7iSpUOEBAEQUQVoBF6ZcbfIORvdTcg)
 2. Run inference script:
 ```bash
 cd src
