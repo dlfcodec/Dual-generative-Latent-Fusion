@@ -10,6 +10,11 @@ Naifu Xue, Zhaoyang Jia, Jiahao Li, Bin Li, Yuan Zhang, Yan Lu
 
 ⭐ If you find DLF helpful, please consider starring this repository. Thank you! 🤗
 
+
+## 👍 More Works
+- [One-Step Diffusion-Based Image Compression with Semantic Distillation (NeurIPS 2025)](https://github.com/onedc-codec/onedc)
+
+
 ## 📝 Abstract
 Recent studies in extreme image compression have achieved remarkable performance by compressing the tokens from generative tokenizers. However, these methods often prioritize clustering common semantics within the dataset, while overlooking the diverse details of individual objects. Consequently, this results in suboptimal reconstruction fidelity, especially at low bitrates. To address this issue, we introduce a Dual-generative Latent Fusion (DLF) paradigm. DLF decomposes the latent into semantic and detail elements, compressing them through two distinct branches. The semantic branch clusters high-level information into compact tokens, while the detail branch encodes perceptually critical details to enhance the overall fidelity. Additionally, we propose a cross-branch interactive design to reduce redundancy between the two branches, thereby minimizing the overall bit cost. Experimental results demonstrate the impressive reconstruction quality of DLF even below 0.01 bits per pixel (bpp). On the CLIC2020 test set, our method achieves bitrate savings of up to 27.93% on LPIPS and 53.55% on DISTS compared to MS-ILLM. Furthermore, DLF surpasses recent diffusion-based codecs in visual fidelity while maintaining a comparable level of generative realism. Code will be available later.
 
