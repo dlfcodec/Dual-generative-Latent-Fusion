@@ -13,6 +13,7 @@ Naifu Xue, Zhaoyang Jia, Jiahao Li, Bin Li, Yuan Zhang, Yan Lu
 
 ## 👍 More Works
 - [One-Step Diffusion-Based Image Compression with Semantic Distillation (NeurIPS 2025)](https://github.com/onedc-codec/onedc)
+- [Generative Latent Coding for Ultra-Low Bitrate Image Compression (CVPR 2024)](https://github.com/jzyustc/GLC)
 
 
 ## 📝 Abstract
